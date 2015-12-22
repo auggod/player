@@ -1,0 +1,24 @@
+{
+  "name": "soundcloud-player",
+  "version": "1.0.0",
+  "description": "Makes it easy to create soundcloud players",
+  "private": true,
+  "authors": [
+    "Augustin Godiscal - dev@auggod.io"
+  ],
+  "keywords": [
+    "web-components",
+    "polymer",
+    "soundcloud"
+  ],
+  "main": "soundcloud-player.html",
+  "license": "MIT",
+  "ignore": [],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-ajax": "PolymerElements/iron-ajax#~1.1.1",
+    "iron-icons": "PolymerElements/iron-icons#~1.0.6",
+    "iron-iconset-svg": "PolymerElements/iron-iconset-svg#~1.0.9",
+    "iron-icon": "PolymerElements/iron-icon#~1.0.7"
+  }
+}

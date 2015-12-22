@@ -1,0 +1,175 @@
+link(rel="import" href="../../bower_components/polymer/polymer.html")
+link(rel="import" href="../play-button/play-button.html")
+link(rel="import" href="../player-data/player-data.html")
+link(rel="import" href="../progress-bar/progress-bar.html")
+link(rel="import" href="../../bower_components/iron-ajax/iron-ajax.html")
+
+dom-module(id="audio-player")
+
+  template
+    style
+      :stylus
+        :host
+          display flex
+          padding 10px
+          margin-bottom 20px
+          border-radius 4px
+          background RGBA(46, 66, 184, 1)
+          color #fff
+        img.play-button
+          border-radius 50%
+        .progress-seeker
+          position absolute
+          top 0
+          cursor pointer
+          z-index 10
+          width 100%
+          height 100%
+
+    iron-ajax(
+      id="ajax"
+      auto
+      url="{{uri}}"
+      params='{{ajaxParams}}'
+      handle-as="json"
+      debounce-duration="300"
+      on-response="onResponse"
+    )
+
+    play-button(on-click="playPause" paused="[[paused]]" playing="[[playing]]" artwork="[[artwork]]")
+
+    player-data(track="[[data]]") 
+      progress-bar(progress="[[progress]]")
+        .progress-seeker(on-click='seek')
+
+    content
+
+  script
+    :livescript
+      audio = document.createElement('audio')
+
+      Polymer do
+        is: \audio-player
+
+        ready: ->
+          @name = "Audio player"
+          @currentTime = audio.currentTime || 0
+          @duration = audio.duration || 0
+          @progress = @currentTime / @duration
+
+        hostAttributes:
+          tabindex: 0
+
+        onResponse: (request) ->
+          @data = request.detail.response
+          @src = @data.stream_url + '?client_id=' + @soundcloudClientId
+          
+        properties:
+          progress:
+            type: Number
+            notify: true
+          duration:
+            type: Number
+            notify: true
+          currentTime:
+            type: Number
+            observer: '_currentTimeChanged'
+            notify: true
+          data:
+            type: Object
+            notify: true
+            reflectToAttribute: true
+          artwork:
+            type: String
+            notify: true
+            computed: 'computeArtworkUrl(data)'
+            readOnly: true
+            reflectToAttribute: true
+          uri:
+            type: String
+            value: 'https://api.soundcloud.com/resolve'
+          url:
+            type: String
+            notify: true
+          src:
+            type: String
+            notify: true
+          soundcloudClientId:
+            type: String
+            value: \d97078ee059112b89104629451ea6cf1
+          playing:
+            type: Boolean
+            notify: true
+            value: false
+          paused:
+            type: Boolean
+            notify: true
+            value: false
+          ajaxParams:
+            type: Object
+            computed: 'computeAjaxParams(url, soundcloudClientId)'
+
+        computeArtworkUrl: (data) ->
+          data.artwork_url || data.user.avatar_url
+
+        _currentTimeChanged: (newValue, oldValue) ->
+          @duration = audio.duration
+          @currentTime = audio.currentTime
+
+          progress = 100 * @currentTime / @duration
+          
+          if @src == audio.src
+            @set('progress', progress)
+
+        computeAjaxParams: (url, soundcloudClientId) ->
+          do
+            url: url
+            client_id: soundcloudClientId
+
+        play: ->
+          if @src != audio.src          
+            audio.src = @src
+          if @paused
+            audio.currentTime = @paused
+          audio.play!
+          @playing = true
+
+        pause: ->
+          audio.pause!
+
+          @paused = @currentTime
+
+          @playing = false
+
+        playPause: (e) ->
+
+          self = @
+          @duration = audio.duration
+   
+          unless @playing
+
+            interval = setInterval ->
+
+              if self.currentTime == self.data.duration
+                clearInterval(interval)
+                self.pause!
+
+              self.currentTime = audio.currentTime
+
+
+            , 15
+
+            @play!
+
+          else
+
+            clearInterval(interval)
+
+            @pause!
+
+        seek: (e) ->
+          unless audio.readyState
+            return false
+          percent = e.offsetX / e.target.offsetWidth or (e.layerX - e.target.offsetLeft) / e.target.offsetWidth
+          time = percent * audio.duration or 0
+          audio.currentTime = time

@@ -1,0 +1,27 @@
+link(rel="import" href="../../bower_components/polymer/polymer.html")
+link(rel="import" href="../audio-player/audio-player.html")
+link(rel="import" href="../audio-players/audio-players.html")
+
+dom-module(id="player-page")
+
+  template
+    style
+      :stylus
+        :host
+          font-family 'Moderat Trial', sans-serif
+          display block
+ 
+    audio-player(url="https://soundcloud.com/bpitch-control/moderat-a-new-error")
+    audio-player(url="https://soundcloud.com/pamparecords/dj-koze-blume-der-nacht")
+    audio-player(url="https://soundcloud.com/freudeamtanzen/06-kadebostan-sofia-on-stage")
+    audio-player(url="https://soundcloud.com/yokoo/xlr8r-podcast-391")
+    audio-player(url="https://soundcloud.com/musik-gewinnt-freunde/musik-gewinnt-freunde-podcast")
+
+    audio-players(source="https://api.tracklistapp.com/tracks")
+
+    content
+
+  script
+    :livescript
+      Polymer do
+        is: 'player-page'

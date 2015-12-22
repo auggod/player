@@ -1,0 +1,41 @@
+link(rel="import" href="../../bower_components/polymer/polymer.html")
+
+dom-module(id="progress-bar")
+
+  template
+    style
+      :stylus
+        :host
+          flex 1
+          position relative
+        .progress-bg
+          position relative
+          background rgba(0, 0, 0, .2)
+          border-radius 4px
+          overflow hidden
+          height 6px
+        .progress-line
+          height 100%
+          border-radius 4px
+          position absolute           
+          background rgba(255, 255, 255, .8)
+
+    .progress-bg
+      .progress-line
+
+    content
+
+  script
+    :livescript
+      Polymer do
+
+        is: 'progress-bar'
+
+        properties: 
+          progress:
+            type: Number
+            observer: '_progressChanged'
+
+        _progressChanged: (newValue, oldValue) ->
+
+          Polymer.dom(@root).querySelector('.progress-line').style.width = @progress + '%'

@@ -1,0 +1,36 @@
+link(rel="import" href="../../bower_components/polymer/polymer.html")
+link(rel="import" href="../../bower_components/iron-ajax/iron-ajax.html")
+link(rel="import" href="../play-button/play-button.html")
+link(rel="import" href="../svg-icons/svg-icons.html")
+
+dom-module(id="player-data")
+
+  template
+
+    style
+      :stylus
+        :host
+          display flex
+          align-items center
+          flex 1
+        .metas
+          margin 10px
+          flex 1
+          display flex
+          flex-direction column
+
+    .metas
+      span.user {{track.user.username}}
+      span.title {{track.title}}
+
+    content
+
+  script
+    :livescript
+      Polymer do
+        is: \player-data
+
+        properties:
+          track:
+            type: Object
+            notify: true
