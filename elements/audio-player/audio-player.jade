@@ -58,15 +58,19 @@ dom-module(id="audio-player")
 
         ready: ->
           @name = "Audio player"
+
           @parentNode.addEventListener 'play', ((e) ->
             if @playing and e.detail.playing != @src
-              console.log e
-              Polymer.dom(@root).query-selector('play-button').click()             
+              @playPause!
           ).bind(@)
 
         listeners:
+          'click': 'handleClick'
           'play': 'handlePlay'
           'pause': 'handlePause'
+
+        handleClick: (e) ->
+          console.log e
 
         handlePlay: (e) ->
           console.log 'play', @data.title, e
@@ -124,6 +128,9 @@ dom-module(id="audio-player")
             type: Boolean
             notify: true
             value: false
+          pausedAt:
+            type: Number
+            notify: true
           ajaxParams:
             type: Object
             computed: '_computeAjaxParams(url, soundcloudClientId)'
@@ -134,6 +141,7 @@ dom-module(id="audio-player")
         _secondesToMinutesAndSeconds: (seconds) ->
           if @playing != @src or !@playing
             return
+
           minutes = Math.floor(seconds / 60)
           minutes = if minutes >= 10 then minutes else '0' + minutes        
           seconds = Math.floor(seconds % 60)
@@ -155,28 +163,31 @@ dom-module(id="audio-player")
 
         play: ->
           audio.src = @src
-          if @paused
-            console.log 'was paused'
-            audio.currentTime = @paused
+          audio.currentTime = @pausedAt || 0
           audio.play!
           console.log audio
           @playing = @src
-          @fire('play', playing: @src)
 
         pause: ->
           audio.pause!
 
-          @paused = @currentTime
+          @pausedAt = @currentTime
 
-          @fire('pause', paused: @paused)
+          @fire('pause', pausedAt: @pausedAt)
 
           @playing = false
 
         playPause: (e) ->
 
           self = @
-          
-          if !@playing
+
+          unless @playing
+
+            @fire('play', playing: @src)
+
+            /*       
+             * Here i should try to
+             */
 
             interval = setInterval ->
 
@@ -188,6 +199,7 @@ dom-module(id="audio-player")
 
             , 1000
 
+            @pausedAt = self.currentTime
             @play!
 
             @duration = @data.duration / 1000.0
@@ -196,8 +208,6 @@ dom-module(id="audio-player")
             @pause!
 
             clearInterval(interval)
-
-            
 
         seek: (e) ->
           unless audio.readyState
