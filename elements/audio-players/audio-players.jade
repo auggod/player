@@ -25,6 +25,7 @@ dom-module(id="audio-players")
         is: 'audio-players'
         onResponse: (request) ->
           @tracks = request.detail.response
+
         properties:
           tracks:
             type: Array

@@ -58,6 +58,21 @@ dom-module(id="audio-player")
 
         ready: ->
           @name = "Audio player"
+          @parentNode.addEventListener 'play', ((e) ->
+            if @playing and e.detail.playing != @src
+              console.log e
+              Polymer.dom(@root).query-selector('play-button').click()             
+          ).bind(@)
+
+        listeners:
+          'play': 'handlePlay'
+          'pause': 'handlePause'
+
+        handlePlay: (e) ->
+          console.log 'play', @data.title, e
+
+        handlePause: (e) ->
+          console.log 'pause', @data.title, e
 
         hostAttributes:
           tabindex: 0
@@ -66,8 +81,6 @@ dom-module(id="audio-player")
           @data = request.detail.response
           @src = @data.stream_url + '?client_id=' + @soundcloudClientId
 
-          @duration = @data.duration / 1000.0
-          
         properties:
           progress:
             type: Number
@@ -119,6 +132,8 @@ dom-module(id="audio-player")
           data.artwork_url || data.user.avatar_url
 
         _secondesToMinutesAndSeconds: (seconds) ->
+          if @playing != @src or !@playing
+            return
           minutes = Math.floor(seconds / 60)
           minutes = if minutes >= 10 then minutes else '0' + minutes        
           seconds = Math.floor(seconds % 60)
@@ -139,44 +154,50 @@ dom-module(id="audio-player")
             client_id: soundcloudClientId
 
         play: ->
-          if @src != audio.src          
-            audio.src = @src
+          audio.src = @src
           if @paused
+            console.log 'was paused'
             audio.currentTime = @paused
           audio.play!
-          @playing = true
+          console.log audio
+          @playing = @src
+          @fire('play', playing: @src)
 
         pause: ->
           audio.pause!
 
           @paused = @currentTime
 
+          @fire('pause', paused: @paused)
+
           @playing = false
 
         playPause: (e) ->
 
           self = @
-
-          unless @playing
+          
+          if !@playing
 
             interval = setInterval ->
 
               if self.currentTime == self.data.duration
                 clearInterval(interval)
-                self.pause!
+                self.pause!        
 
               self.currentTime = audio.currentTime
-
 
             , 1000
 
             @play!
 
+            @duration = @data.duration / 1000.0
+
           else
+            @pause!
 
             clearInterval(interval)
 
-            @pause!
+            
 
         seek: (e) ->
           unless audio.readyState

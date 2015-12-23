@@ -46,15 +46,30 @@ img.play-button {
   Polymer({
     is: 'audio-player',
     ready: function(){
-      return this.name = "Audio player";
+      this.name = "Audio player";
+      return this.parentNode.addEventListener('play', function(e){
+        if (this.playing && e.detail.playing !== this.src) {
+          console.log(e);
+          return Polymer.dom(this.root).querySelector('play-button').click();
+        }
+      }.bind(this));
+    },
+    listeners: {
+      'play': 'handlePlay',
+      'pause': 'handlePause'
+    },
+    handlePlay: function(e){
+      return console.log('play', this.data.title, e);
+    },
+    handlePause: function(e){
+      return console.log('pause', this.data.title, e);
     },
     hostAttributes: {
       tabindex: 0
     },
     onResponse: function(request){
       this.data = request.detail.response;
-      this.src = this.data.stream_url + '?client_id=' + this.soundcloudClientId;
-      return this.duration = this.data.duration / 1000.0;
+      return this.src = this.data.stream_url + '?client_id=' + this.soundcloudClientId;
     },
     properties: {
       progress: {
@@ -120,6 +135,9 @@ img.play-button {
     },
     _secondesToMinutesAndSeconds: function(seconds){
       var minutes;
+      if (this.playing !== this.src || !this.playing) {
+        return;
+      }
       minutes = Math.floor(seconds / 60);
       minutes = minutes >= 10
         ? minutes
@@ -145,18 +163,24 @@ img.play-button {
       };
     },
     play: function(){
-      if (this.src !== audio.src) {
-        audio.src = this.src;
-      }
+      audio.src = this.src;
       if (this.paused) {
+        console.log('was paused');
         audio.currentTime = this.paused;
       }
       audio.play();
-      return this.playing = true;
+      console.log(audio);
+      this.playing = this.src;
+      return this.fire('play', {
+        playing: this.src
+      });
     },
     pause: function(){
       audio.pause();
       this.paused = this.currentTime;
+      this.fire('pause', {
+        paused: this.paused
+      });
       return this.playing = false;
     },
     playPause: function(e){
@@ -170,10 +194,11 @@ img.play-button {
           }
           return self.currentTime = audio.currentTime;
         }, 1000);
-        return this.play();
+        this.play();
+        return this.duration = this.data.duration / 1000.0;
       } else {
-        clearInterval(interval);
-        return this.pause();
+        this.pause();
+        return clearInterval(interval);
       }
     },
     seek: function(e){
