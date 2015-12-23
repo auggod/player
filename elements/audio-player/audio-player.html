@@ -77,31 +77,24 @@ img.play-button {
     },
     properties: {
       progress: {
-        type: Number,
-        notify: true
+        type: Number
       },
       duration: {
         type: Number,
-        notify: true,
-        value: 0
+        notify: true
       },
       currentTime: {
         type: Number,
-        observer: '_currentTimeChanged',
-        notify: true,
-        value: 0
+        notify: true
       },
       data: {
         type: Object,
-        notify: true,
-        reflectToAttribute: true
+        notify: true
       },
       artwork: {
         type: String,
-        notify: true,
         computed: '_computeArtworkUrl(data)',
-        readOnly: true,
-        reflectToAttribute: true
+        readOnly: true
       },
       uri: {
         type: String,
@@ -156,14 +149,6 @@ img.play-button {
         : '0' + seconds;
       return minutes + ':' + seconds;
     },
-    _currentTimeChanged: function(newValue, oldValue){
-      var progress;
-      this.currentTime = audio.currentTime;
-      progress = 100 * this.currentTime / this.duration;
-      if (this.src === audio.src) {
-        return this.set('progress', progress);
-      }
-    },
     _computeAjaxParams: function(url, soundcloudClientId){
       return {
         url: url,
@@ -174,7 +159,6 @@ img.play-button {
       audio.src = this.src;
       audio.currentTime = this.pausedAt || 0;
       audio.play();
-      console.log(audio);
       return this.playing = this.src;
     },
     pause: function(){
@@ -188,22 +172,32 @@ img.play-button {
     playPause: function(e){
       var self, interval;
       self = this;
+      if (this.currentTime === audio.duration) {
+        audio.currentTime = 0;
+        this.currentTime = 0;
+        this.pausedAt = this.currentTime;
+      }
       if (!this.playing) {
         this.fire('play', {
           playing: this.src
         });
-        /*       
-         * Here i should try to
-         */
-        interval = setInterval(function(){
-          if (self.currentTime === self.data.duration) {
-            clearInterval(interval);
-            self.pause();
-          }
-          return self.currentTime = audio.currentTime;
-        }, 1000);
         this.play();
-        return this.duration = this.data.duration / 1000.0;
+        this.duration = this.data.duration / 1000.0;
+        return interval = setInterval(function(){
+          var progress;
+          if (self.currentTime === audio.duration) {
+            self.pausedAt = self.currentTime;
+            self.pause();
+            clearInterval(interval);
+          }
+          if (self.playing) {
+            self.currentTime = audio.currentTime;
+            progress = 100 * self.currentTime / self.duration;
+            return self.set('progress', progress);
+          } else {
+            return clearInterval(interval);
+          }
+        }, 1000);
       } else {
         this.pause();
         return clearInterval(interval);
@@ -219,7 +213,8 @@ img.play-button {
       }
       percent = e.offsetX / e.target.offsetWidth || (e.layerX - e.target.offsetLeft) / e.target.offsetWidth;
       time = percent * audio.duration || 0;
-      return audio.currentTime = time;
+      audio.currentTime = time;
+      return this.pausedAt = audio.currentTime;
     }
   });
 }).call(this);

@@ -22,7 +22,7 @@
 
     </style>
     <div class="progress-bg">
-      <div class="progress-line"></div>
+      <div style$="{{width}}" class="progress-line"></div>
     </div>
     <content></content>
   </template>
@@ -33,11 +33,16 @@
     properties: {
       progress: {
         type: Number,
-        observer: '_progressChanged'
+        notify: true
+      },
+      width: {
+        notify: true,
+        type: String,
+        computed: '_computeWidth(progress)'
       }
     },
-    _progressChanged: function(newValue, oldValue){
-      return Polymer.dom(this.root).querySelector('.progress-line').style.width = this.progress + '%';
+    _computeWidth: function(progress){
+      return 'width:' + progress + '%;';
     }
   });
 }).call(this);

@@ -21,7 +21,7 @@ dom-module(id="progress-bar")
           background rgba(255, 255, 255, .8)
 
     .progress-bg
-      .progress-line
+      .progress-line(style$="{{width}}")
 
     content
 
@@ -34,8 +34,11 @@ dom-module(id="progress-bar")
         properties: 
           progress:
             type: Number
-            observer: '_progressChanged'
+            notify: true
+          width:
+            notify: true
+            type: String
+            computed: '_computeWidth(progress)'
 
-        _progressChanged: (newValue, oldValue) ->
-
-          Polymer.dom(@root).querySelector('.progress-line').style.width = @progress + '%'
+        _computeWidth: (progress) ->
+          'width:' + progress + '%;'

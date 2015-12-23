@@ -89,26 +89,19 @@ dom-module(id="audio-player")
         properties:
           progress:
             type: Number
-            notify: true
           duration:
             type: Number
             notify: true
-            value: 0
           currentTime:
             type: Number
-            observer: '_currentTimeChanged'
             notify: true
-            value: 0
           data:
             type: Object
             notify: true
-            reflectToAttribute: true
           artwork:
             type: String
-            notify: true
             computed: '_computeArtworkUrl(data)'
             readOnly: true
-            reflectToAttribute: true
           uri:
             type: String
             value: 'https://api.soundcloud.com/resolve'
@@ -137,7 +130,7 @@ dom-module(id="audio-player")
             computed: '_computeAjaxParams(url, soundcloudClientId)'
 
         _computeArtworkUrl: (data) ->
-          data.artwork_url || data.user.avatar_url
+          data.artwork_url or data.user.avatar_url
 
         _secondesToMinutesAndSeconds: (seconds) ->
           if @playing != @src or !@playing
@@ -149,14 +142,6 @@ dom-module(id="audio-player")
           seconds = if seconds >= 10 then seconds else '0' + seconds         
           minutes + ':' + seconds
 
-        _currentTimeChanged: (newValue, oldValue) ->
-          @currentTime = audio.currentTime
-
-          progress = 100 * @currentTime / @duration
-          
-          if @src == audio.src
-            @set('progress', progress)
-
         _computeAjaxParams: (url, soundcloudClientId) ->
           do
             url: url
@@ -166,7 +151,6 @@ dom-module(id="audio-player")
           audio.src = @src
           audio.currentTime = @pausedAt || 0
           audio.play!
-          console.log audio
           @playing = @src
 
         pause: ->
@@ -182,27 +166,33 @@ dom-module(id="audio-player")
 
           self = @
 
+          if @currentTime == audio.duration
+            audio.currentTime = 0
+            @currentTime = 0
+            @pausedAt = @currentTime
+
           unless @playing
 
             @fire('play', playing: @src)
 
-            /*       
-             * Here i should try to
-             */
+            @play!
+            @duration = @data.duration / 1000.0
 
             interval = setInterval ->
 
-              if self.currentTime == self.data.duration
-                clearInterval(interval)
-                self.pause!        
+              if self.currentTime == audio.duration
+                self.pausedAt = self.currentTime
+                self.pause!
+                clearInterval(interval)         
 
-              self.currentTime = audio.currentTime
+              if self.playing
+                self.currentTime = audio.currentTime
+                progress = 100 * self.currentTime / self.duration
+                self.set('progress', progress)
+              else
+                clearInterval(interval) 
 
-            , 1000
-
-            @play!
-
-            @duration = @data.duration / 1000.0
+            , 1000         
 
           else
             @pause!
@@ -217,3 +207,4 @@ dom-module(id="audio-player")
           percent = e.offsetX / e.target.offsetWidth or (e.layerX - e.target.offsetLeft) / e.target.offsetWidth
           time = percent * audio.duration or 0
           audio.currentTime = time
+          @pausedAt = audio.currentTime
