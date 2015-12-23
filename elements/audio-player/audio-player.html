@@ -49,6 +49,7 @@ img.play-button {
       this.name = "Audio player";
       return this.parentNode.addEventListener('play', function(e){
         if (this.playing && e.detail.playing !== this.src) {
+          this.pausedAt = this.currentTime;
           return this.playPause();
         }
       }.bind(this));
@@ -201,7 +202,6 @@ img.play-button {
           }
           return self.currentTime = audio.currentTime;
         }, 1000);
-        this.pausedAt = self.currentTime;
         this.play();
         return this.duration = this.data.duration / 1000.0;
       } else {
@@ -211,6 +211,9 @@ img.play-button {
     },
     seek: function(e){
       var percent, time;
+      if (audio.src !== this.src) {
+        return false;
+      }
       if (!audio.readyState) {
         return false;
       }

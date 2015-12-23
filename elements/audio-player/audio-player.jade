@@ -61,6 +61,7 @@ dom-module(id="audio-player")
 
           @parentNode.addEventListener 'play', ((e) ->
             if @playing and e.detail.playing != @src
+              @pausedAt = @currentTime
               @playPause!
           ).bind(@)
 
@@ -199,7 +200,6 @@ dom-module(id="audio-player")
 
             , 1000
 
-            @pausedAt = self.currentTime
             @play!
 
             @duration = @data.duration / 1000.0
@@ -210,6 +210,8 @@ dom-module(id="audio-player")
             clearInterval(interval)
 
         seek: (e) ->
+          unless audio.src == @src
+            return false
           unless audio.readyState
             return false
           percent = e.offsetX / e.target.offsetWidth or (e.layerX - e.target.offsetLeft) / e.target.offsetWidth
