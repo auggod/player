@@ -3,6 +3,7 @@
 <link rel="import" href="../play-button/play-button.html"/>
 <link rel="import" href="../player-data/player-data.html"/>
 <link rel="import" href="../progress-bar/progress-bar.html"/>
+<link rel="import" href="../player-timer/player-timer.html"/>
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html"/>
 <dom-module id="audio-player">
   <template>
@@ -30,9 +31,11 @@ img.play-button {
     <iron-ajax id="ajax" auto="auto" url="{{uri}}" params="{{ajaxParams}}" handle-as="json" debounce-duration="300" on-response="onResponse"></iron-ajax>
     <play-button on-click="playPause" paused="[[paused]]" playing="[[playing]]" artwork="[[artwork]]"></play-button>
     <player-data track="[[data]]"> 
+      <player-timer time="[[_secondesToMinutesAndSeconds(currentTime)]]"></player-timer>
       <progress-bar progress="[[progress]]">
         <div on-click="seek" class="progress-seeker"></div>
       </progress-bar>
+      <player-timer time="[[_secondesToMinutesAndSeconds(duration)]]"></player-timer>
     </player-data>
     <content></content>
   </template>
@@ -43,17 +46,15 @@ img.play-button {
   Polymer({
     is: 'audio-player',
     ready: function(){
-      this.name = "Audio player";
-      this.currentTime = audio.currentTime || 0;
-      this.duration = audio.duration || 0;
-      return this.progress = this.currentTime / this.duration;
+      return this.name = "Audio player";
     },
     hostAttributes: {
       tabindex: 0
     },
     onResponse: function(request){
       this.data = request.detail.response;
-      return this.src = this.data.stream_url + '?client_id=' + this.soundcloudClientId;
+      this.src = this.data.stream_url + '?client_id=' + this.soundcloudClientId;
+      return this.duration = this.data.duration / 1000.0;
     },
     properties: {
       progress: {
@@ -62,12 +63,14 @@ img.play-button {
       },
       duration: {
         type: Number,
-        notify: true
+        notify: true,
+        value: 0
       },
       currentTime: {
         type: Number,
         observer: '_currentTimeChanged',
-        notify: true
+        notify: true,
+        value: 0
       },
       data: {
         type: Object,
@@ -77,7 +80,7 @@ img.play-button {
       artwork: {
         type: String,
         notify: true,
-        computed: 'computeArtworkUrl(data)',
+        computed: '_computeArtworkUrl(data)',
         readOnly: true,
         reflectToAttribute: true
       },
@@ -109,22 +112,33 @@ img.play-button {
       },
       ajaxParams: {
         type: Object,
-        computed: 'computeAjaxParams(url, soundcloudClientId)'
+        computed: '_computeAjaxParams(url, soundcloudClientId)'
       }
     },
-    computeArtworkUrl: function(data){
+    _computeArtworkUrl: function(data){
       return data.artwork_url || data.user.avatar_url;
+    },
+    _secondesToMinutesAndSeconds: function(seconds){
+      var minutes;
+      minutes = Math.floor(seconds / 60);
+      minutes = minutes >= 10
+        ? minutes
+        : '0' + minutes;
+      seconds = Math.floor(seconds % 60);
+      seconds = seconds >= 10
+        ? seconds
+        : '0' + seconds;
+      return minutes + ':' + seconds;
     },
     _currentTimeChanged: function(newValue, oldValue){
       var progress;
-      this.duration = audio.duration;
       this.currentTime = audio.currentTime;
       progress = 100 * this.currentTime / this.duration;
       if (this.src === audio.src) {
         return this.set('progress', progress);
       }
     },
-    computeAjaxParams: function(url, soundcloudClientId){
+    _computeAjaxParams: function(url, soundcloudClientId){
       return {
         url: url,
         client_id: soundcloudClientId
@@ -148,7 +162,6 @@ img.play-button {
     playPause: function(e){
       var self, interval;
       self = this;
-      this.duration = audio.duration;
       if (!this.playing) {
         interval = setInterval(function(){
           if (self.currentTime === self.data.duration) {
@@ -156,7 +169,7 @@ img.play-button {
             self.pause();
           }
           return self.currentTime = audio.currentTime;
-        }, 15);
+        }, 1000);
         return this.play();
       } else {
         clearInterval(interval);

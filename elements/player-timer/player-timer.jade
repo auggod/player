@@ -1,0 +1,29 @@
+link(rel="import" href="../../bower_components/polymer/polymer.html")
+
+dom-module(id="player-timer")
+
+  template
+    style
+      :stylus
+        :host
+          position relative
+          min-width 40px
+          line-height 30px
+          margin 0 10px
+          min-height 30px
+        .time
+          position absolute
+
+    .time {{time}}
+
+    content
+
+  script
+    :livescript
+      Polymer do
+
+        is: 'player-timer'
+
+        properties: 
+          time:
+            type: String

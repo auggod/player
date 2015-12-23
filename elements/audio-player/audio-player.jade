@@ -2,6 +2,7 @@ link(rel="import" href="../../bower_components/polymer/polymer.html")
 link(rel="import" href="../play-button/play-button.html")
 link(rel="import" href="../player-data/player-data.html")
 link(rel="import" href="../progress-bar/progress-bar.html")
+link(rel="import" href="../player-timer/player-timer.html")
 link(rel="import" href="../../bower_components/iron-ajax/iron-ajax.html")
 
 dom-module(id="audio-player")
@@ -38,9 +39,13 @@ dom-module(id="audio-player")
 
     play-button(on-click="playPause" paused="[[paused]]" playing="[[playing]]" artwork="[[artwork]]")
 
+    
+
     player-data(track="[[data]]") 
+      player-timer(time="[[_secondesToMinutesAndSeconds(currentTime)]]")
       progress-bar(progress="[[progress]]")
         .progress-seeker(on-click='seek')
+      player-timer(time="[[_secondesToMinutesAndSeconds(duration)]]")
 
     content
 
@@ -53,9 +58,6 @@ dom-module(id="audio-player")
 
         ready: ->
           @name = "Audio player"
-          @currentTime = audio.currentTime || 0
-          @duration = audio.duration || 0
-          @progress = @currentTime / @duration
 
         hostAttributes:
           tabindex: 0
@@ -63,6 +65,8 @@ dom-module(id="audio-player")
         onResponse: (request) ->
           @data = request.detail.response
           @src = @data.stream_url + '?client_id=' + @soundcloudClientId
+
+          @duration = @data.duration / 1000.0
           
         properties:
           progress:
@@ -71,10 +75,12 @@ dom-module(id="audio-player")
           duration:
             type: Number
             notify: true
+            value: 0
           currentTime:
             type: Number
             observer: '_currentTimeChanged'
             notify: true
+            value: 0
           data:
             type: Object
             notify: true
@@ -82,7 +88,7 @@ dom-module(id="audio-player")
           artwork:
             type: String
             notify: true
-            computed: 'computeArtworkUrl(data)'
+            computed: '_computeArtworkUrl(data)'
             readOnly: true
             reflectToAttribute: true
           uri:
@@ -107,13 +113,19 @@ dom-module(id="audio-player")
             value: false
           ajaxParams:
             type: Object
-            computed: 'computeAjaxParams(url, soundcloudClientId)'
+            computed: '_computeAjaxParams(url, soundcloudClientId)'
 
-        computeArtworkUrl: (data) ->
+        _computeArtworkUrl: (data) ->
           data.artwork_url || data.user.avatar_url
 
+        _secondesToMinutesAndSeconds: (seconds) ->
+          minutes = Math.floor(seconds / 60)
+          minutes = if minutes >= 10 then minutes else '0' + minutes        
+          seconds = Math.floor(seconds % 60)
+          seconds = if seconds >= 10 then seconds else '0' + seconds         
+          minutes + ':' + seconds
+
         _currentTimeChanged: (newValue, oldValue) ->
-          @duration = audio.duration
           @currentTime = audio.currentTime
 
           progress = 100 * @currentTime / @duration
@@ -121,7 +133,7 @@ dom-module(id="audio-player")
           if @src == audio.src
             @set('progress', progress)
 
-        computeAjaxParams: (url, soundcloudClientId) ->
+        _computeAjaxParams: (url, soundcloudClientId) ->
           do
             url: url
             client_id: soundcloudClientId
@@ -144,8 +156,7 @@ dom-module(id="audio-player")
         playPause: (e) ->
 
           self = @
-          @duration = audio.duration
-   
+
           unless @playing
 
             interval = setInterval ->
@@ -157,7 +168,7 @@ dom-module(id="audio-player")
               self.currentTime = audio.currentTime
 
 
-            , 15
+            , 1000
 
             @play!
 
