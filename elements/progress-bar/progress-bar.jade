@@ -4,7 +4,7 @@ dom-module(id="progress-bar")
 
   template
     style
-      :stylus
+      :stylus(minify=true)
         :host
           flex 1
           position relative
@@ -26,7 +26,7 @@ dom-module(id="progress-bar")
     content
 
   script
-    :livescript
+    :livescript(minify=true)
       Polymer do
 
         is: 'progress-bar'

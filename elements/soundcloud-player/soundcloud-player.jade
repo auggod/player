@@ -1,0 +1,79 @@
+link(rel="import" href="../../bower_components/polymer/polymer.html")
+link(rel="import" href="../../bower_components/iron-ajax/iron-ajax.html")
+link(rel="import" href="../audio-player/audio-player.html")
+link(rel="import" href="../playlist-items/playlist-items.html")
+
+dom-module(id="soundcloud-player")
+
+  template
+    style
+      :stylus(minify=true)
+        :host
+          flex 1
+
+    iron-ajax(
+      id="ajax"
+      auto
+      url="{{uri}}"
+      params='{{ajaxParams}}'
+      handle-as="json"
+      debounce-duration="300"
+      on-response="onResponse"
+    )
+
+    audio-player(src="{{src}}" data="{{data}}" tracks="{{tracks}}" artwork="{{artwork}}")
+      template(is="dom-if" if="{{playlist}}")
+        playlist-items(tracks="{{tracks}}")
+
+    content
+
+  script
+    :livescript(minify=true)
+      Polymer do
+
+        is: 'soundcloud-player'
+
+        onResponse: (request) ->
+          @data = request.detail.response
+
+          switch
+          case @data.kind == 'track'
+            @src = @data.stream_url + '?client_id=' + @clientId
+          case @data.kind == 'playlist'
+            @src = @data.tracks[0].stream_url + '?client_id=' + @clientId
+            @playlist = true
+            @tracks = @data.tracks
+
+        properties:
+          playlist:
+            type: Boolean
+            notify: true
+            value: false
+          clientId:
+            type: String
+            notify: true
+          uri:
+            type: String
+            value: 'https://api.soundcloud.com/resolve'
+          url:
+            type: String
+          tracks:
+            type: Array
+            notify: true
+          src:
+            type: String
+            notify: true
+          artwork:
+            type: String
+            computed: '_computeArtworkUrl(data)'
+          ajaxParams:
+            type: Object
+            computed: '_computeAjaxParams(url, clientId)'
+
+        _computeArtworkUrl: (data) ->
+          data.artwork_url or data.user.avatar_url
+
+        _computeAjaxParams: (url, clientId) ->
+          do
+            url: url
+            client_id: clientId

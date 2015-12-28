@@ -3,15 +3,15 @@ link(rel="import" href="../play-button/play-button.html")
 link(rel="import" href="../player-data/player-data.html")
 link(rel="import" href="../progress-bar/progress-bar.html")
 link(rel="import" href="../player-timer/player-timer.html")
-link(rel="import" href="../../bower_components/iron-ajax/iron-ajax.html")
 
 dom-module(id="audio-player")
 
   template
     style
-      :stylus
+      :stylus(minify=true)
         :host
           display flex
+          flex-direction column
           padding 10px
           margin-bottom 20px
           border-radius 4px
@@ -26,22 +26,17 @@ dom-module(id="audio-player")
           z-index 10
           width 100%
           height 100%
-
-    iron-ajax(
-      id="ajax"
-      auto
-      url="{{uri}}"
-      params='{{ajaxParams}}'
-      handle-as="json"
-      debounce-duration="300"
-      on-response="onResponse"
-    )
-
-    play-button(on-click="playPause" paused="[[paused]]" playing="[[playing]]" artwork="[[artwork]]")
-
-    
+        player-metas
+          margin 10px
+          flex 1
+          display flex
+          flex-direction column
 
     player-data(track="[[data]]") 
+      play-button(on-click="playPause" paused="[[paused]]" playing="[[playing]]" artwork="[[artwork]]")
+      player-metas
+        span.user {{data.user.username}}
+        span.title {{data.title}}
       player-timer(time="[[_secondesToMinutesAndSeconds(currentTime)]]")
       progress-bar(progress="[[progress]]")
         .progress-seeker(on-click='seek')
@@ -58,17 +53,35 @@ dom-module(id="audio-player")
 
         ready: ->
           @name = "Audio player"
+          
+          window.onhashchange = ((e) ->
+            console.log e
+          ).bind(@)
 
-          @parentNode.addEventListener 'play', ((e) ->
+          window.onpopstate = ((e) ->
+            console.log e
+          ).bind(@)
+
+          document.addEventListener 'pause', ((e) ->
+            if e.detail.playing == @src
+              @playing = false
+          ).bind(@)
+
+          document.addEventListener 'play', ((e) ->
             if @playing and e.detail.playing != @src
               @pausedAt = @currentTime
               @playPause!
           ).bind(@)
 
         listeners:
+          'keydown': 'handleKeyDown'
           'click': 'handleClick'
           'play': 'handlePlay'
           'pause': 'handlePause'
+
+        handleKeyDown: (e) ->
+          if e.keyCode == 32
+            @playPause!
 
         handleClick: (e) ->
           console.log e
@@ -82,11 +95,9 @@ dom-module(id="audio-player")
         hostAttributes:
           tabindex: 0
 
-        onResponse: (request) ->
-          @data = request.detail.response
-          @src = @data.stream_url + '?client_id=' + @soundcloudClientId
-
         properties:
+          tracks:
+            type: Array
           progress:
             type: Number
           duration:
@@ -98,22 +109,15 @@ dom-module(id="audio-player")
           data:
             type: Object
             notify: true
+          streamable:
+            type: Boolean
+            value: true
           artwork:
-            type: String
-            computed: '_computeArtworkUrl(data)'
-            readOnly: true
-          uri:
-            type: String
-            value: 'https://api.soundcloud.com/resolve'
-          url:
             type: String
             notify: true
           src:
             type: String
             notify: true
-          soundcloudClientId:
-            type: String
-            value: \d97078ee059112b89104629451ea6cf1
           playing:
             type: Boolean
             notify: true
@@ -125,15 +129,9 @@ dom-module(id="audio-player")
           pausedAt:
             type: Number
             notify: true
-          ajaxParams:
-            type: Object
-            computed: '_computeAjaxParams(url, soundcloudClientId)'
-
-        _computeArtworkUrl: (data) ->
-          data.artwork_url or data.user.avatar_url
 
         _secondesToMinutesAndSeconds: (seconds) ->
-          if @playing != @src or !@playing
+          if !@playing and @playing != @src
             return
 
           minutes = Math.floor(seconds / 60)
@@ -142,31 +140,55 @@ dom-module(id="audio-player")
           seconds = if seconds >= 10 then seconds else '0' + seconds         
           minutes + ':' + seconds
 
-        _computeAjaxParams: (url, soundcloudClientId) ->
-          do
-            url: url
-            client_id: soundcloudClientId
-
         play: ->
           audio.src = @src
           audio.currentTime = @pausedAt || 0
           audio.play!
           @playing = @src
+          unless self.tracks
+            @duration = @data.duration / 1000.0
+          else
+            @duration = audio.duration
 
         pause: ->
           audio.pause!
 
           @pausedAt = @currentTime
 
-          @fire('pause', pausedAt: @pausedAt)
+          @fire('pause', {
+            pausedAt: @pausedAt
+            playing: @src          
+          })
 
           @playing = false
+
+        setTimer: (speed = 1000) ->
+          self = @
+          interval = setInterval ->
+            if self.currentTime == audio.duration
+              self.pausedAt = self.currentTime
+              self.pause!
+              console.log @
+              clearInterval(interval)       
+
+              if self.tracks
+                console.log 'This is a playlist'
+                console.log self.tracks
+                console.log 'index', _.findIndex(self.tracks, 'title': self.data.title)
+
+            else if self.playing == self.src           
+              self.currentTime = audio.currentTime
+              if not self.tracks then progress = 100 * self.currentTime / self.duration else progress = 100 * self.currentTime / audio.duration
+              self.set('progress', progress)
+            else             
+              clearInterval(interval) 
+          , speed 
 
         playPause: (e) ->
 
           self = @
 
-          if @currentTime == audio.duration
+          if audio.readyState and @currentTime == audio.duration
             audio.currentTime = 0
             @currentTime = 0
             @pausedAt = @currentTime
@@ -176,35 +198,15 @@ dom-module(id="audio-player")
             @fire('play', playing: @src)
 
             @play!
-            @duration = @data.duration / 1000.0
-
-            interval = setInterval ->
-
-              if self.currentTime == audio.duration
-                self.pausedAt = self.currentTime
-                self.pause!
-                clearInterval(interval)         
-
-              if self.playing
-                self.currentTime = audio.currentTime
-                progress = 100 * self.currentTime / self.duration
-                self.set('progress', progress)
-              else
-                clearInterval(interval) 
-
-            , 1000         
+            @setTimer!   
 
           else
             @pause!
 
-            clearInterval(interval)
-
         seek: (e) ->
-          unless audio.src == @src
-            return false
-          unless audio.readyState
-            return false
           percent = e.offsetX / e.target.offsetWidth or (e.layerX - e.target.offsetLeft) / e.target.offsetWidth
-          time = percent * audio.duration or 0
+          time = percent * @duration or 0
           audio.currentTime = time
           @pausedAt = audio.currentTime
+          unless audio.src == @src
+            @playPause!

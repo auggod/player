@@ -3,7 +3,7 @@ link(rel="import" href="../../bower_components/polymer/polymer.html")
 dom-module(id="background-image")
   template
     style
-      :stylus
+      :stylus(minify=true)
         :host
           background-size 105%
           background-position 50% 50%
@@ -18,7 +18,7 @@ dom-module(id="background-image")
     content
 
   script
-    :livescript
+    :livescript(minify=true)
       Polymer do
         is: 'background-image'
         properties: 

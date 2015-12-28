@@ -7,6 +7,12 @@ html
     script(src="bower_components/webcomponentsjs/webcomponents-lite.js")
     link(rel="import" href="bower_components/polymer/polymer.html")
     link(rel="import" href="elements/player-page/index.html")
-    link(rel="stylesheet" href="/app.css")
+    script(src="bower_components/lodash/lodash.min.js")
+    style
+      :stylus(minify=true)
+        body
+          background rgba(0 0 0 .9)
+          font-family 'Moderat Trial', sans-serif
   body
-    player-page
+    template(id="t" is="dom-bind")
+      player-page

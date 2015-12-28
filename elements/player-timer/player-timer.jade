@@ -4,7 +4,7 @@ dom-module(id="player-timer")
 
   template
     style
-      :stylus
+      :stylus(minify=true)
         :host
           position relative
           min-width 40px
@@ -19,7 +19,7 @@ dom-module(id="player-timer")
     content
 
   script
-    :livescript
+    :livescript(minify=true)
       Polymer do
 
         is: 'player-timer'

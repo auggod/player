@@ -1,24 +1,23 @@
 link(rel="import" href="../../bower_components/polymer/polymer.html")
 
-dom-module(id="player-data")
+dom-module(id="playlist-item")
 
   template
-
     style
       :stylus(minify=true)
         :host
-          display flex
-          align-items center
-          flex 1
+          display block
 
+    div {{data.title}}
     content
 
   script
     :livescript(minify=true)
       Polymer do
-        is: \player-data
+
+        is: 'playlist-item'
 
         properties:
-          track:
+          data:
             type: Object
             notify: true

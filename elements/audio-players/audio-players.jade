@@ -20,7 +20,7 @@ dom-module(id="audio-players")
     content
 
   script
-    :livescript
+    :livescript(minify=true)
       Polymer do
         is: 'audio-players'
         onResponse: (request) ->

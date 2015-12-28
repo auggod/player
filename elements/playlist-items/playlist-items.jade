@@ -1,0 +1,29 @@
+link(rel="import" href="../../bower_components/polymer/polymer.html")
+link(rel="import" href="../playlist-item/playlist-item.html")
+
+dom-module(id="playlist-items")
+
+  template
+    style
+      :stylus(minify=true)
+        :host
+          display flex
+          flex-direction column
+
+    template(is="dom-repeat" items="{{tracks}}")
+      playlist-item(playing="{{playing}}" url="{{item.url}}" data="{{item}}" on-click="play")
+    content
+
+  script
+    :livescript(minify=true)
+      Polymer do
+
+        is: 'playlist-items'
+
+        ready: ->
+          console.log @tracks
+
+        properties:
+          tracks:
+            type: Array
+            notify: true

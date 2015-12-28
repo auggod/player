@@ -6,7 +6,7 @@ dom-module(id="play-button")
 
   template
     style
-      :stylus
+      :stylus(minify=true)
         :host
           display block
           cursor pointer
@@ -29,7 +29,7 @@ dom-module(id="play-button")
       template(is="dom-if" if="{{paused}} || !{{playing}}")
         iron-icon(icon="svg-icons:play")
   script
-    :livescript
+    :livescript(minify=true)
       Polymer do
         is: 'play-button'
         properties: 
