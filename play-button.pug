@@ -1,6 +1,6 @@
-link(rel="import" href="../../bower_components/polymer/polymer.html")
-link(rel="import" href="../svg-icons/svg-icons.html")
-link(rel="import" href="../background-image/background-image.html")
+link(rel="import" href="./bower_components/polymer/polymer.html")
+link(rel="import" href="./svg-icons.html")
+link(rel="import" href="./bower_components/iron-image/iron-image.html")
 
 dom-module(id="play-button")
 
@@ -17,22 +17,27 @@ dom-module(id="play-button")
           border-radius 50%
           &:hover iron-icon
             fill RGBA(46, 66, 184, 0)
+        iron-image
+          width 60px
+          height 60px
         iron-icon
           transition fill 200ms ease-in-out
           fill RGBA(46, 66, 184, .9)
           width 54px
           height 54px
           margin 3px
-    background-image(path="{{artwork}}")
-      template(is="dom-if" if="{{playing}}")
-        iron-icon(icon="svg-icons:pause")
-      template(is="dom-if" if="{{paused}} || !{{playing}}")
-        iron-icon(icon="svg-icons:play")
+          position absolute
+          left 0
+    iron-image(preload src="{{artwork}}" sizing="cover")
+    template(is="dom-if" if="{{playing}}")
+      iron-icon(icon="svg-icons:pause")
+    template(is="dom-if" if="{{!playing}}")
+      iron-icon(icon="svg-icons:play")
   script
     :livescript(minify=true)
       Polymer do
         is: 'play-button'
-        properties: 
+        properties:
           path:
             type: String
             notify: true

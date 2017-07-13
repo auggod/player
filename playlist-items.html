@@ -1,0 +1,13 @@
+
+<link rel="import" href="./bower_components/polymer/polymer.html"/>
+<link rel="import" href="./playlist-item.html"/>
+<dom-module id="playlist-items">
+  <template>
+    <style>:host{display:flex;flex-direction:column}</style>
+    <template is="dom-repeat" items="{{tracks}}">
+      <playlist-item playing="{{playing}}" url="{{item.url}}" data="{{item}}" on-click="play"></playlist-item>
+    </template>
+    <content></content>
+  </template>
+  <script>(function(){Polymer({is:"playlist-items",ready:function(){return console.log(this.tracks)},properties:{tracks:{type:Array,notify:!0}}})}).call(this);</script>
+</dom-module>

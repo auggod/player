@@ -1,4 +1,4 @@
-link(rel="import" href="../../bower_components/polymer/polymer.html")
+link(rel="import" href="./bower_components/polymer/polymer.html")
 
 dom-module(id="progress-bar")
 
@@ -17,7 +17,7 @@ dom-module(id="progress-bar")
         .progress-line
           height 100%
           border-radius 4px
-          position absolute           
+          position absolute
           background rgba(255, 255, 255, .8)
 
     .progress-bg
@@ -28,10 +28,8 @@ dom-module(id="progress-bar")
   script
     :livescript(minify=true)
       Polymer do
-
         is: 'progress-bar'
-
-        properties: 
+        properties:
           progress:
             type: Number
             notify: true
@@ -39,6 +37,5 @@ dom-module(id="progress-bar")
             notify: true
             type: String
             computed: '_computeWidth(progress)'
-
         _computeWidth: (progress) ->
           'width:' + progress + '%;'

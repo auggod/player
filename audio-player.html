@@ -1,0 +1,43 @@
+
+<link rel="import" href="./bower_components/polymer/polymer.html"/>
+<link rel="import" href="./play-button.html"/>
+<link rel="import" href="./progress-bar.html"/>
+<dom-module id="audio-player">
+  <template>
+    <style is="custom-style">
+      :host {
+        @apply(--layout-vertical);
+      }
+      #audio-player {
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+      }
+      .metas {
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
+      }
+    </style>
+    <style>:host{padding:10px;margin-bottom:20px;border-radius:4px;background:RGBA(46,66,184,1);color:#fff}img.play-button{border-radius:50%}.progress-seeker{position:absolute;top:0;cursor:pointer;z-index:10;width:100%;height:100%}.metas{margin:10px}.timer{position:relative;min-width:40px;line-height:30px;margin:0 10px;min-height:30px}.time{position:absolute}</style>
+    <div id="audio-player">
+      <play-button on-click="playPause" paused="[[paused]]" playing="[[playing]]" artwork="[[artwork]]"></play-button>
+      <template is="dom-if" if="{{metas}}">
+        <div class="metas"><span class="user">{{data.user.username}}</span><span class="title">{{data.title}}</span></div>
+      </template>
+      <template is="dom-if" if="{{timer}}">
+        <div class="timer">
+          <div class="time">{{_secondesToMinutesAndSeconds(currentTime)}}</div>
+        </div>
+      </template>
+      <template is="dom-if" if="{{progressBar}}">
+        <progress-bar progress="[[progress]]">
+          <div class="progress-seeker" on-click="seek"></div>
+        </progress-bar>
+        <div class="timer">
+          <div class="time">{{_secondesToMinutesAndSeconds(duration)}}</div>
+        </div>
+      </template>
+    </div>
+    <content></content>
+  </template>
+  <script src="./audio-player.js"></script>
+</dom-module>

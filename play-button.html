@@ -1,0 +1,17 @@
+
+<link rel="import" href="./bower_components/polymer/polymer.html"/>
+<link rel="import" href="./svg-icons.html"/>
+<link rel="import" href="./bower_components/iron-image/iron-image.html"/>
+<dom-module id="play-button">
+  <template>
+    <style>:host{display:block;cursor:pointer;position:relative;width:60px;height:60px;overflow:hidden;border-radius:50%}:host:hover iron-icon{fill:RGBA(46,66,184,0)}iron-image{width:60px;height:60px}iron-icon{transition:fill .2s ease-in-out;fill:RGBA(46,66,184,.9);width:54px;height:54px;margin:3px;position:absolute;left:0}</style>
+    <iron-image preload="preload" src="{{artwork}}" sizing="cover"></iron-image>
+    <template is="dom-if" if="{{playing}}">
+      <iron-icon icon="svg-icons:pause"></iron-icon>
+    </template>
+    <template is="dom-if" if="{{!playing}}">
+      <iron-icon icon="svg-icons:play"></iron-icon>
+    </template>
+  </template>
+  <script>(function(){Polymer({is:"play-button",properties:{path:{type:String,notify:!0},paused:{type:Boolean,value:!1},playing:{type:Boolean,value:!1}}})}).call(this);</script>
+</dom-module>

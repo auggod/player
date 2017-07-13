@@ -1,0 +1,18 @@
+
+<link rel="import" href="./bower_components/polymer/polymer.html"/>
+<link rel="import" href="./soundcloud-player.html"/>
+<link rel="import" href="./audio-player.html"/>
+<link rel="import" href="./audio-players.html"/>
+<dom-module id="player-page">
+  <template>
+    <style>:host{display:block}
+    </style>
+    <audio-players>
+      <soundcloud-player url="https://soundcloud.com/pamparecords/dj-koze-blume-der-nacht" client-id="d97078ee059112b89104629451ea6cf1"></soundcloud-player>
+      <soundcloud-player url="https://soundcloud.com/dominik-eulberg/offenbach-edit" client-id="d97078ee059112b89104629451ea6cf1"></soundcloud-player>
+    </audio-players>
+    <content></content>
+  </template>
+  <script>(function(){Polymer({is:"player-page"})}).call(this);
+  </script>
+</dom-module>

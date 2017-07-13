@@ -1,7 +1,7 @@
-link(rel="import" href="../../bower_components/polymer/polymer.html")
-link(rel="import" href="../../bower_components/iron-ajax/iron-ajax.html")
-link(rel="import" href="../audio-player/audio-player.html")
-link(rel="import" href="../playlist-items/playlist-items.html")
+link(rel="import" href="./bower_components/polymer/polymer.html")
+link(rel="import" href="./bower_components/iron-ajax/iron-ajax.html")
+link(rel="import" href="./audio-player.html")
+link(rel="import" href="./playlist-items.html")
 
 dom-module(id="soundcloud-player")
 
@@ -21,21 +21,26 @@ dom-module(id="soundcloud-player")
       on-response="onResponse"
     )
 
-    audio-player(src="{{src}}" data="{{data}}" tracks="{{tracks}}" artwork="{{artwork}}")
-      template(is="dom-if" if="{{playlist}}")
-        playlist-items(tracks="{{tracks}}")
+    audio-player(
+      src="{{src}}"
+      data="{{data}}"
+      tracks="{{tracks}}"
+      artwork="{{artwork}}"
+    )
 
     content
 
   script
     :livescript(minify=true)
       Polymer do
-
         is: 'soundcloud-player'
-
+        ready: ->
+          for module in @modules.split(" ")
+            return if !module
+            @querySelector('audio-player').setAttribute(module, module)
+          console.log(@$.ajax.__data__)
         onResponse: (request) ->
           @data = request.detail.response
-
           switch
           case @data.kind == 'track'
             @src = @data.stream_url + '?client_id=' + @clientId
@@ -43,8 +48,10 @@ dom-module(id="soundcloud-player")
             @src = @data.tracks[0].stream_url + '?client_id=' + @clientId
             @playlist = true
             @tracks = @data.tracks
-
         properties:
+          modules:
+            type: String
+            value: 'metas timer progress-bar'
           playlist:
             type: Boolean
             notify: true
@@ -54,7 +61,7 @@ dom-module(id="soundcloud-player")
             notify: true
           uri:
             type: String
-            value: 'https://api.soundcloud.com/resolve'
+            value: 'https://proxy.tracklistapp.com'
           url:
             type: String
           tracks:
@@ -69,11 +76,8 @@ dom-module(id="soundcloud-player")
           ajaxParams:
             type: Object
             computed: '_computeAjaxParams(url, clientId)'
-
         _computeArtworkUrl: (data) ->
           data.artwork_url or data.user.avatar_url
-
         _computeAjaxParams: (url, clientId) ->
           do
-            url: url
-            client_id: clientId
+            url: "https://api.soundcloud.com/resolve?url=#{url}&client_id=#{clientId}"

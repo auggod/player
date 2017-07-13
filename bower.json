@@ -15,11 +15,12 @@
   "license": "MIT",
   "ignore": [],
   "dependencies": {
-    "polymer": "Polymer/polymer#^1.0.0",
-    "iron-ajax": "PolymerElements/iron-ajax#~1.1.1",
+    "polymer": "1.5.0",
+    "iron-ajax": "PolymerElements/iron-ajax#^1.2.0",
     "iron-icons": "PolymerElements/iron-icons#~1.0.6",
     "iron-iconset-svg": "PolymerElements/iron-iconset-svg#~1.0.9",
     "iron-icon": "PolymerElements/iron-icon#~1.0.7",
-    "lodash": "~3.10.1"
+    "lodash": "~3.10.1",
+    "iron-image": "PolymerElements/iron-image#^1.2.3"
   }
 }
